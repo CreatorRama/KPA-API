@@ -113,7 +113,7 @@ def create_wheel_specification(
         
          specs=crud.get_wheel_specification(db,formNumber=formNumber,submittedBy=submittedBy,submittedDate=submittedDate)
          response_data=[schemas.MinimalWheelSpecificationResponse.from_orm(spec) for spec in specs]
-         return{
+         return {
              "data": response_data,
              "message": "Wheel specifications retrieved successfully",
              "success": True
