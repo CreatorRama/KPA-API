@@ -92,3 +92,29 @@ def create_wheel_specification(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+        
+    @app.get(
+        "/api/forms/wheel-specifications",
+        response_model=schemas.GetWheelSpecificationsResponse,
+        status_code=status.HTTP_201_CREATED,
+        tags=["Wheel Specifications"],
+        summary="Create a new wheel specification form",
+        responses={
+            201: {"description": "Successfully created wheel specification"},
+            400: {"description": "Invalid input data"},
+            409: {"description": "Form number already exists"}
+        }
+    )   
+    
+    def get_wheel_specification(formNumber: Optional[str] = Query(None, description="Filter by form number",example="WHEEL-2025-001"),
+        submittedBy: Optional[str] = Query(None, description="Filter by submitted ID",example="user_id_123"),
+        submittedDate: Optional[date] = Query(None, description="Filter by submitted date",example="2025-07-03"),
+        db: Session = Depends(get_db)):
+        
+         specs=crud.get_wheel_specification(db,formNumber=formNumber,submittedBy=submittedBy,submittedDate=submittedDate)
+         response_data=[schemas.MinimalWheelSpecificationResponse.from_orm(spec) for spec in specs]
+         return{
+             "data": response_data,
+             "message": "Wheel specifications retrieved successfully",
+             "success": True
+         }
