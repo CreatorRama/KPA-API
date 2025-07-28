@@ -98,7 +98,7 @@ Create a new wheel specification form.
     "submittedDate": "2025-01-15",
     "status": "SAVED"
   },
-  "message": "Wheel specification created successfully",
+  "message": "Wheel specification submitted successfully",
   "success": true
 }
 ```
