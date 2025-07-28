@@ -1,2 +1,4 @@
 venv/
 .env
+_pycache_/
+KPA form data.postman collection.json

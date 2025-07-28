@@ -33,7 +33,7 @@ class WheelSpecificationCreate(BaseModel):
         v = v.strip().upper()
         if not v.startswith('WHEEL-'):
             raise ValueError('Form number must start with WHEEL-')
-        if not v[6:].isdigit(): 
+        if not v[6:].split('-')[0].isdigit() and not v[6:].split('-')[1].isdigit(): 
             raise ValueError('After WHEEL- must be numbers')
         return v
     
@@ -73,19 +73,21 @@ class MinimalWheelSpecificationResponse(BaseModel):
 
     @classmethod
     def from_orm(cls, db_spec):
+        # Handle case where fields is None
+        fields_data = db_spec.fields or {}
         return cls(
             formNumber=db_spec.form_number,
             submittedBy=db_spec.submitted_by,
             submittedDate=db_spec.submitted_date,
-            fields={
-                "treadDiameterNew": db_spec.fields.get("treadDiameterNew", ""),
-                "lastShopIssueSize": db_spec.fields.get("lastShopIssueSize", ""),
-                "condemningDia": db_spec.fields.get("condemningDia", ""),
-                "wheelGauge": db_spec.fields.get("wheelGauge", "")
-            },
+            fields=MinimalWheelSpecificationFields(
+                treadDiameterNew=fields_data.get("treadDiameterNew"),
+                lastShopIssueSize=fields_data.get("lastShopIssueSize"),
+                condemningDia=fields_data.get("condemningDia"),
+                wheelGauge=fields_data.get("wheelGauge")
+            ),
             status=db_spec.status
         )
-
+        
 class GetWheelSpecificationsResponse(BaseModel):
     data: List[MinimalWheelSpecificationResponse]
     message: str

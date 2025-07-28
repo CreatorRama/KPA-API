@@ -1,11 +1,14 @@
 from pydantic_settings import BaseSettings
-from  pydantic import Field
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = Field(..., env='DATABASE_URL')
-    APP_ENV: str = Field('development', env='APP_ENV')
+    DATABASE_URL: str 
+    APP_ENV: str = "development"
     
-    class config:
-        env_file = '.env'
-        extra='ignore'
-Settings=Settings()        
+    class Config:
+        env_file = ".env"
+
+settings = Settings()

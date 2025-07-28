@@ -65,56 +65,71 @@ def create_wheel_specification(
     - **submittedDate**: Date of submission (cannot be in the future)
     - **fields**: Contains all wheel specification measurements and tolerances
     """
-    
     try:
-        existing=crud.get_wheel_specification(db,formNumber=specification.formNumber)
-        if(existing):
+        existing = crud.get_wheel_specification(db, formNumber=specification.formNumber)
+        if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Form number already exists"
             )
-            db_specs=crud.create_wheel_specification(db, specification)
-            
-            response_data=schemas.WheelSpecificationResponse(
-                formNumber=db_specs.form_number,
-                submittedBy=db_specs.submitted_by,
-                submittedDate=db_specs.submitted_date,
-                status=db_specs.status
-            )
-            
-            return {
-                data: response_data,
-                "message": "Wheel specification created successfully",
-                "Success": True
-            }
+        
+        db_specs = crud.create_wheel_specification(db, specification)
+        
+        response_data = schemas.WheelSpecificationResponse(
+            formNumber=db_specs.form_number,
+            submittedBy=db_specs.submitted_by,
+            submittedDate=db_specs.submitted_date,
+            status=db_specs.status
+        )
+        
+        return {
+            "data": response_data,
+            "message": "Wheel specification created successfully",
+            "success": True
+        }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
         
-    @app.get(
-        "/api/forms/wheel-specifications",
-        response_model=schemas.GetWheelSpecificationsResponse,
-        status_code=status.HTTP_201_CREATED,
-        tags=["Wheel Specifications"],
-        summary="Create a new wheel specification form",
-        responses={
-            201: {"description": "Successfully created wheel specification"},
-            400: {"description": "Invalid input data"},
-            409: {"description": "Form number already exists"}
-        }
-    )   
+@app.get(
+"/api/forms/wheel-specifications",
+response_model=schemas.GetWheelSpecificationsResponse,
+status_code=status.HTTP_201_CREATED,
+tags=["Wheel Specifications"],
+summary="Create a new wheel specification form",
+responses={
+    201: {"description": "Successfully created wheel specification"},
+    400: {"description": "Invalid input data"},
+    409: {"description": "Form number already exists"}
+}
+)   
+
+def get_wheel_specifications(
+    formNumber: Optional[str] = Query(None),
+    submittedBy: Optional[str] = Query(None),
+    submittedDate: Optional[date] = Query(None),
+    db: Session = Depends(get_db)
+):
+    specs = crud.get_wheel_specification(
+        db, 
+        formNumber=formNumber,
+        submittedBy=submittedBy,
+        submittedDate=submittedDate
+    )
     
-    def get_wheel_specification(formNumber: Optional[str] = Query(None, description="Filter by form number",example="WHEEL-2025-001"),
-        submittedBy: Optional[str] = Query(None, description="Filter by submitted ID",example="user_id_123"),
-        submittedDate: Optional[date] = Query(None, description="Filter by submitted date",example="2025-07-03"),
-        db: Session = Depends(get_db)):
-        
-         specs=crud.get_wheel_specification(db,formNumber=formNumber,submittedBy=submittedBy,submittedDate=submittedDate)
-         response_data=[schemas.MinimalWheelSpecificationResponse.from_orm(spec) for spec in specs]
-         return {
-             "data": response_data,
-             "message": "Wheel specifications retrieved successfully",
-             "success": True
-         }
+    if not specs:
+        return {
+            "data": [],
+            "message": "No wheel specifications found",
+            "success": True
+        }
+    
+    response_data = [schemas.MinimalWheelSpecificationResponse.from_orm(spec) for spec in specs]
+    
+    return {
+        "data": response_data,
+        "message": "Wheel specifications retrieved successfully",
+        "success": True
+    }
